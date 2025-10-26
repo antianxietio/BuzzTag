@@ -1,0 +1,88 @@
+{
+  "achievements": [
+    {
+      "id": "ice_breaker",
+      "title": "Ice Breaker",
+      "description": "Send your first message",
+      "icon": "🎯",
+      "condition": { "type": "messages_sent", "count": 1 }
+    },
+    {
+      "id": "conversationalist",
+      "title": "Conversationalist",
+      "description": "Send 10 messages",
+      "icon": "💬",
+      "condition": { "type": "messages_sent", "count": 10 }
+    },
+    {
+      "id": "chatterbox",
+      "title": "Chatterbox",
+      "description": "Send 50 messages",
+      "icon": "🗣️",
+      "condition": { "type": "messages_sent", "count": 50 }
+    },
+    {
+      "id": "social_butterfly",
+      "title": "Social Butterfly",
+      "description": "Connect to 5 different devices",
+      "icon": "🦋",
+      "condition": { "type": "devices_connected", "count": 5 }
+    },
+    {
+      "id": "networker",
+      "title": "Networker",
+      "description": "Connect to 10 different devices",
+      "icon": "🤝",
+      "condition": { "type": "devices_connected", "count": 10 }
+    },
+    {
+      "id": "question_master",
+      "title": "Question Master",
+      "description": "Use 25 different questions",
+      "icon": "❓",
+      "condition": { "type": "questions_used", "count": 25 }
+    },
+    {
+      "id": "buzz_master",
+      "title": "Buzz Master",
+      "description": "Use all 50 questions",
+      "icon": "🌟",
+      "condition": { "type": "questions_used", "count": 50 }
+    },
+    {
+      "id": "on_fire",
+      "title": "On Fire",
+      "description": "Send 20 messages in one session",
+      "icon": "🔥",
+      "condition": { "type": "session_messages", "count": 20 }
+    },
+    {
+      "id": "night_owl",
+      "title": "Night Owl",
+      "description": "Use BuzzTag between midnight and 5 AM",
+      "icon": "🦉",
+      "condition": { "type": "time_range", "start": 0, "end": 5 }
+    },
+    {
+      "id": "early_bird",
+      "title": "Early Bird",
+      "description": "Use BuzzTag between 5 AM and 8 AM",
+      "icon": "🐦",
+      "condition": { "type": "time_range", "start": 5, "end": 8 }
+    },
+    {
+      "id": "speedster",
+      "title": "Speedster",
+      "description": "Send 5 messages in under 30 seconds",
+      "icon": "⚡",
+      "condition": { "type": "rapid_messages", "count": 5, "timeLimit": 30 }
+    },
+    {
+      "id": "loyal_user",
+      "title": "Loyal User",
+      "description": "Use BuzzTag for 7 days",
+      "icon": "🏆",
+      "condition": { "type": "days_used", "count": 7 }
+    }
+  ]
+}
