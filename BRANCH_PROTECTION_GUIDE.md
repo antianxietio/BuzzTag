@@ -11,7 +11,7 @@ This guide will help you set up branch protection rules to prevent direct commit
 
 ### 2. Add Branch Protection Rule
 1. Click **Add branch protection rule**
-2. In "Branch name pattern", enter: `main`
+2. In "Branch name pattern", enter: `master`
 
 ### 3. Configure Protection Rules
 
@@ -84,9 +84,9 @@ Click **Create**
 ## 📋 What This Accomplishes
 
 ### ✅ Contributors CANNOT:
-- Push directly to `main` branch
-- Force push to `main`
-- Delete the `main` branch
+- Push directly to `master` branch
+- Force push to `master`
+- Delete the `master` branch
 - Merge without your approval
 - Bypass status checks
 
@@ -167,14 +167,14 @@ android/** @antianxietio
 ## 🚀 Quick Setup Checklist
 
 - [ ] Navigate to Settings > Branches
-- [ ] Add branch protection rule for `main`
+- [ ] Add branch protection rule for `master`
 - [ ] Check "Require a pull request before merging"
 - [ ] Check "Require approvals: 1"
 - [ ] Check "Restrict who can push to matching branches"
 - [ ] Check "Do not allow bypassing"
 - [ ] Check "Block force pushes"
 - [ ] Save the rule
-- [ ] Test by trying to push to main (should fail)
+- [ ] Test by trying to push to master (should fail)
 
 ---
 
