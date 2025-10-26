@@ -9,45 +9,119 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Message Timestamps**: Display time for each message (relative and absolute)
-- **Signal Strength Indicators**: Show Bluetooth RSSI strength (Excellent/Good/Fair/Weak) for each device
+  - Shows "Just now" for recent messages
+  - Shows "Xm ago" for messages within the hour
+  - Shows time for messages today (e.g., "2:30 PM")
+  - Shows day and time for older messages
+- **Signal Strength Indicators**: Show Bluetooth RSSI strength for each device
+  - 📶 Excellent (> -60 dBm)
+  - 📶 Good (-60 to -70 dBm)
+  - 📡 Fair (-70 to -80 dBm)
+  - 📡 Weak (< -80 dBm)
 - **Long-Press to Copy**: Long-press any message to copy its text to clipboard
+  - Shows Android toast notification on copy
+  - Works for both user and bot messages
 - **Device Removal**: Long-press device chips to remove them from the list
+  - Confirmation dialog before removal
+  - Clears conversation history for removed device
 - **Message Count Display**: Show total message count in chat header
-- **Device Selection Hints**: Helper text showing tap/long-press interactions
+  - Updates in real-time as you chat
+  - Shows "X message(s)" format
+- **Device Selection Hints**: Helper text showing "💡 Tap to select • Long press to remove"
 - **Toast Notifications**: Android toast feedback when copying messages
 - **Improved Device Cards**: Enhanced device chips with signal strength and message badges
+  - Signal icon and text (Excellent/Good/Fair/Weak)
+  - Message count badge on devices with conversations
+  - Minimum width for better touch targets
 - **Contribution Guidelines**: Added comprehensive CONTRIBUTING.md
 - **Pull Request Template**: Standardized PR template for contributors
-- **CODEOWNERS File**: Automatic code review assignment
+- **CODEOWNERS File**: Automatic code review assignment to @antianxietio
 - **Branch Protection Guide**: Complete guide for repository protection setup
 
 ### Changed
 - **Device Filtering**: Improved Bluetooth device filtering to exclude unnamed/system devices
-- **Device UI Layout**: Redesigned device chips with vertical layout showing signal strength
+  - Filters out "Unknown" devices
+  - Filters out generic "Device_X" names
+  - Filters out MAC address-based names
+- **Device UI Layout**: Redesigned device chips with vertical layout
+  - Signal strength icon at top
+  - Device name and signal text below
+  - Message badge on the right
+  - Better use of space in horizontal scroll
 - **Vibration Feedback**: Enhanced haptic feedback on all user interactions
+  - Single vibration (50ms) for message sends, copies, selections
+  - Multi-pattern vibration for device discovery (100ms-50ms-100ms)
 - **Chat Header**: Now shows device name and message count
+  - Device name in accent color
+  - Message count in secondary text color
+  - Clean, informative layout
 - **Message Bubbles**: Added timestamps at bottom of each message
+  - Small, subtle timestamp text
+  - Right-aligned in bubbles
+  - Maintains clean bubble design
+- **ChatBubble Component**: Now supports long-press interaction
+  - TouchableOpacity wrapper for press handling
+  - Passes onLongPress callback
+  - Maintains existing animations
 
 ### Fixed
-- "Buzz Again" functionality now sends questions FROM user TO device (not from BuzzTag)
-- Button text changes from "Buzz Newly" to "Buzz Again" after first message
-- Buzz button now always visible when device is selected (not just when messages exist)
-- Device filtering excludes generic "Device_X" names and MAC addresses
+- **"Buzz Again" functionality** now sends questions FROM user TO device (not from BuzzTag)
+  - Questions appear as YOUR messages (blue bubbles)
+  - No more confusing bot responses
+  - Matches expected messaging pattern
+- **Button text** changes from "Buzz Newly" to "Buzz Again" after first message
+  - Shows 🎯 "Buzz Newly" for fresh conversations
+  - Shows 🔁 "Buzz Again" after messages sent
+- **Buzz button** now always visible when device is selected
+  - Previously only showed when messages existed
+  - Now available immediately after device selection
+- **Device filtering** excludes generic "Device_X" names and MAC addresses
+  - Cleaner device list
+  - Only shows meaningful device names
 
 ### Technical Details
-- Added `Clipboard` and `ToastAndroid` imports
-- Added `handleLongPressMessage()` for message copy functionality
-- Added `handleRemoveDevice()` for device removal
-- Added `getSignalStrength()` for RSSI interpretation
-- Added `formatTimestamp()` for relative time display
-- Updated `ChatBubble` component to support long-press and timestamps
-- Enhanced device rendering with signal indicators
+- Added `Clipboard` import from react-native for copy functionality
+- Added `ToastAndroid` import for Android-specific toast notifications
+- Added `Platform` import for platform-specific features
+- Added `handleLongPressMessage()` for message copy functionality with alert dialog
+- Added `handleRemoveDevice()` for device removal with confirmation
+- Added `getSignalStrength()` for RSSI interpretation and icon selection
+- Added `formatTimestamp()` for relative time display logic
+- Updated `ChatBubble` component props: `timestamp`, `onLongPress`
+- Enhanced `renderDeviceItem()` with signal strength display
+- Added new styles: `deviceMainInfo`, `signalIcon`, `signalText`, `chatHeaderInfo`, `messageCountText`, `deviceHint`
+- Modified `showNewQuestion()` to send as user message instead of bot message
 
 ### Documentation
 - Created `CONTRIBUTING.md` - 300+ lines of contribution guidelines
+  - Code of conduct
+  - Development process workflow
+  - Branch naming conventions
+  - Commit message format
+  - PR requirements
+  - Style guidelines
+  - Testing checklist
 - Created `.github/PULL_REQUEST_TEMPLATE.md` - Standardized PR format
+  - Description template
+  - Change type checkboxes
+  - Testing checklist
+  - Screenshot sections
 - Created `.github/CODEOWNERS` - Auto-assign reviews to @antianxietio
+  - Global ownership
+  - Path-specific owners
+  - Documentation ownership
 - Created `BRANCH_PROTECTION_GUIDE.md` - Step-by-step repository protection setup
+  - Traditional branch protection rules
+  - New GitHub rulesets approach
+  - Contributor workflow example
+  - Quick setup checklist
+
+### Security
+- **Branch Protection Enabled**: Master branch now requires pull requests
+  - Prevents direct pushes
+  - Requires code review approval
+  - Forces collaborative workflow
+  - Protects against accidental force pushes
 
 ---
 
