@@ -264,7 +264,7 @@ const App = () => {
         if (!selectedDevice) return;
 
         const deviceName = devices.find(d => d.id === selectedDevice)?.name || 'this device';
-        
+
         Alert.alert(
             'Reset Chat',
             `Clear all messages with ${deviceName}?`,
@@ -351,7 +351,7 @@ const App = () => {
         const date = new Date(timestamp);
         const now = new Date();
         const diff = now - date;
-        
+
         // Less than 1 minute
         if (diff < 60000) return 'Just now';
         // Less than 1 hour
@@ -366,7 +366,7 @@ const App = () => {
         }
         // Older
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    };    const renderDeviceItem = ({ item }) => {
+    }; const renderDeviceItem = ({ item }) => {
         const isSelected = item.id === selectedDevice;
         const messageCount = conversations[item.id]?.messages?.length || 0;
         const signal = getSignalStrength(item.rssi);
