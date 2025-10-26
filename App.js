@@ -22,13 +22,19 @@ import {
     Platform,
 } from 'react-native';
 import BluetoothService from './services/bluetooth';
+import Storage from './services/storage';
 import questionsData from './data/questions.json';
 import ChatBubble from './components/ChatBubble';
 import InputBar from './components/InputBar';
 import TypingIndicator from './components/TypingIndicator';
+import ProfileSetup from './components/ProfileSetup';
 import { COLORS, SPACING, TYPOGRAPHY } from './styles';
 
 const App = () => {
+    // User profile state
+    const [userProfile, setUserProfile] = useState(null);
+    const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+
     // Conversation state: { deviceId: { messages: [], isTyping: false } }
     const [conversations, setConversations] = useState({});
     const [devices, setDevices] = useState([]);
@@ -40,12 +46,77 @@ const App = () => {
     const scrollViewRef = useRef(null);
     const usedQuestions = useRef(new Map()); // Map of deviceId -> Set of used questions
 
+    // Load user profile on mount
     useEffect(() => {
-        initializeBluetooth();
-        return () => {
-            BluetoothService.destroy();
-        };
+        loadUserProfile();
     }, []);
+
+    const loadUserProfile = async () => {
+        try {
+            const profile = await Storage.loadProfile();
+            setUserProfile(profile);
+        } catch (error) {
+            console.log('No existing profile found');
+        } finally {
+            setIsLoadingProfile(false);
+        }
+    };
+
+    const handleProfileComplete = async (profile) => {
+        try {
+            await Storage.saveProfile(profile);
+            setUserProfile(profile);
+        } catch (error) {
+            console.error('Error saving profile:', error);
+            Alert.alert('Error', 'Failed to save profile. Please try again.');
+        }
+    };
+
+    useEffect(() => {
+        if (userProfile) {
+            loadPersistedData();
+            // Delay Bluetooth initialization slightly to ensure everything is ready
+            const timer = setTimeout(() => {
+                initializeBluetooth();
+            }, 500);
+            return () => {
+                clearTimeout(timer);
+                BluetoothService.destroy();
+            };
+        }
+    }, [userProfile]);
+
+    // Load persisted conversations and devices
+    const loadPersistedData = async () => {
+        try {
+            const savedConversations = await Storage.loadConversations();
+            const savedDevices = await Storage.loadDevices();
+
+            if (savedConversations) {
+                setConversations(savedConversations);
+            }
+
+            if (savedDevices && savedDevices.length > 0) {
+                setDevices(savedDevices);
+            }
+        } catch (error) {
+            console.log('No persisted data found:', error);
+        }
+    };
+
+    // Save conversations whenever they change
+    useEffect(() => {
+        if (userProfile && Object.keys(conversations).length > 0) {
+            Storage.saveConversations(conversations).catch(console.error);
+        }
+    }, [conversations]);
+
+    // Save devices whenever they change
+    useEffect(() => {
+        if (userProfile && devices.length > 0) {
+            Storage.saveDevices(devices).catch(console.error);
+        }
+    }, [devices]);
 
     const initializeBluetooth = async () => {
         try {
@@ -404,6 +475,21 @@ const App = () => {
     const currentConversation = selectedDevice ? conversations[selectedDevice] : null;
     const currentMessages = currentConversation?.messages || [];
     const isTyping = currentConversation?.isTyping || false;
+
+    // Show profile setup if no profile exists
+    if (isLoadingProfile) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <View style={styles.loadingContainer}>
+                    <Text style={styles.loadingText}>Loading BuzzTag...</Text>
+                </View>
+            </SafeAreaView>
+        );
+    }
+
+    if (!userProfile) {
+        return <ProfileSetup onComplete={handleProfileComplete} />;
+    }
 
     return (
         <SafeAreaView style={styles.container}>
@@ -796,6 +882,16 @@ const styles = StyleSheet.create({
     },
     modalCancelText: {
         ...TYPOGRAPHY.subtitle,
+        color: COLORS.textSecondary,
+    },
+    // Loading styles
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loadingText: {
+        ...TYPOGRAPHY.body,
         color: COLORS.textSecondary,
     },
 });
