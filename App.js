@@ -1,5 +1,5 @@
 /**
- * BuzzTag 2.0 - Main App Component
+ * BuzzTag 3.0 - Main App Component
  * Break the ice. Talk to the question.
  */
 
@@ -23,17 +23,27 @@ import {
 } from 'react-native';
 import BluetoothService from './services/bluetooth';
 import Storage from './services/storage';
+import AchievementsService from './services/achievements';
+import SoundService from './services/sound';
+import Encryption from './services/encryption';
 import questionsData from './data/questions.json';
 import ChatBubble from './components/ChatBubble';
 import InputBar from './components/InputBar';
 import TypingIndicator from './components/TypingIndicator';
 import ProfileSetup from './components/ProfileSetup';
+import ConnectionStatusBar from './components/ConnectionStatusBar';
+import ReactionPicker from './components/ReactionPicker';
+import AchievementNotification from './components/AchievementNotification';
+import SettingsScreen from './screens/SettingsScreen';
 import { COLORS, SPACING, TYPOGRAPHY } from './styles';
 
 const App = () => {
     // User profile state
     const [userProfile, setUserProfile] = useState(null);
     const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+
+    // Screen state
+    const [currentScreen, setCurrentScreen] = useState('chat'); // 'chat' or 'settings'
 
     // Conversation state: { deviceId: { messages: [], isTyping: false } }
     const [conversations, setConversations] = useState({});
@@ -43,18 +53,47 @@ const App = () => {
     const [bluetoothEnabled, setBluetoothEnabled] = useState(false);
     const [showDeviceSelector, setShowDeviceSelector] = useState(false);
     const [pendingMessage, setPendingMessage] = useState(null);
+
+    // Reaction state
+    const [showReactionPicker, setShowReactionPicker] = useState(false);
+    const [selectedMessageForReaction, setSelectedMessageForReaction] = useState(null);
+
+    // Achievement state
+    const [achievementNotification, setAchievementNotification] = useState(null);
+
     const scrollViewRef = useRef(null);
     const usedQuestions = useRef(new Map()); // Map of deviceId -> Set of used questions
 
     // Load user profile on mount
     useEffect(() => {
         loadUserProfile();
+        initializeServices();
     }, []);
+
+    const initializeServices = async () => {
+        try {
+            // Initialize achievements service
+            await AchievementsService.initialize();
+
+            // Load settings
+            const settings = await Storage.loadSettings();
+            if (settings) {
+                SoundService.setSoundsEnabled(settings.soundsEnabled ?? true);
+                SoundService.setHapticsEnabled(settings.hapticsEnabled ?? true);
+                Encryption.setEncryption(settings.encryptionEnabled ?? true);
+            }
+        } catch (error) {
+            console.error('Error initializing services:', error);
+        }
+    };
 
     const loadUserProfile = async () => {
         try {
             const profile = await Storage.loadProfile();
-            setUserProfile(profile);
+            if (profile) {
+                setUserProfile(profile);
+                BluetoothService.setUserProfile(profile);
+            }
         } catch (error) {
             console.log('No existing profile found');
         } finally {
@@ -66,6 +105,8 @@ const App = () => {
         try {
             await Storage.saveProfile(profile);
             setUserProfile(profile);
+            BluetoothService.setUserProfile(profile);
+            SoundService.buttonPress();
         } catch (error) {
             console.error('Error saving profile:', error);
             Alert.alert('Error', 'Failed to save profile. Please try again.');
@@ -182,10 +223,10 @@ const App = () => {
                     usedQuestions.current.set(device.id, new Set());
                 }
 
-                // Auto-select first device and send welcome question
+                // Auto-select first device but DON'T send message automatically
+                // User must manually send message or buzz question
                 if (prev.length === 0) {
                     setSelectedDevice(device.id);
-                    setTimeout(() => showNewQuestion(device.id), 500);
                 }
 
                 return [...prev, device];
@@ -249,7 +290,7 @@ const App = () => {
         }, 100);
     };
 
-    const handleSendMessage = (text) => {
+    const handleSendMessage = async (text) => {
         if (!text.trim()) return;
 
         // If no device selected, show device selector
@@ -269,15 +310,26 @@ const App = () => {
             return;
         }
 
-        sendMessageToDevice(selectedDevice, text);
+        await sendMessageToDevice(selectedDevice, text);
+
+        // Track achievement progress
+        await AchievementsService.updateStats('messagesSent', 1);
+        await AchievementsService.updateStats('sessionMessages', 1);
+        const newUnlocks = await AchievementsService.checkAchievements('messagesSent');
+
+        if (newUnlocks.length > 0) {
+            setAchievementNotification(newUnlocks[0]);
+            SoundService.achievementUnlocked();
+        }
     };
 
-    const sendMessageToDevice = (deviceId, text) => {
+    const sendMessageToDevice = async (deviceId, text) => {
         const newMessage = {
             id: Date.now().toString() + Math.random(),
             text: text,
             isBot: false,
             timestamp: Date.now(),
+            reactions: [],
         };
 
         setConversations((prev) => ({
@@ -288,8 +340,15 @@ const App = () => {
             },
         }));
 
-        // Vibration feedback
-        Vibration.vibrate(50);
+        // Haptic feedback
+        SoundService.messageSent();
+
+        // Try to send via Bluetooth
+        try {
+            await BluetoothService.sendMessage(deviceId, text);
+        } catch (error) {
+            console.log('BLE send failed, simulating:', error);
+        }
 
         // Scroll to bottom
         setTimeout(() => {
@@ -303,7 +362,16 @@ const App = () => {
 
     const handleDeviceSelect = (deviceId) => {
         setSelectedDevice(deviceId);
-        Vibration.vibrate(50);
+        SoundService.deviceConnected();
+
+        // Track achievement
+        AchievementsService.updateStats('devicesConnected', 1).then(async () => {
+            const newUnlocks = await AchievementsService.checkAchievements('devicesConnected');
+            if (newUnlocks.length > 0) {
+                setAchievementNotification(newUnlocks[0]);
+                SoundService.achievementUnlocked();
+            }
+        });
 
         // If there's a pending message, send it
         if (pendingMessage) {
@@ -318,7 +386,7 @@ const App = () => {
         }, 100);
     };
 
-    const handleBuzzAgain = () => {
+    const handleBuzzAgain = async () => {
         if (!selectedDevice) {
             Alert.alert(
                 'No Device Selected',
@@ -327,8 +395,16 @@ const App = () => {
             );
             return;
         }
-        Vibration.vibrate([100, 50, 100]);
-        showNewQuestion(selectedDevice);
+        SoundService.buttonPress();
+        await showNewQuestion(selectedDevice);
+
+        // Track achievement
+        await AchievementsService.updateStats('questionsAnswered', 1);
+        const newUnlocks = await AchievementsService.checkAchievements('questionsAnswered');
+        if (newUnlocks.length > 0) {
+            setAchievementNotification(newUnlocks[0]);
+            SoundService.achievementUnlocked();
+        }
     };
 
     const handleResetChat = () => {
@@ -391,10 +467,18 @@ const App = () => {
     };
 
     const handleLongPressMessage = (message) => {
+        SoundService.longPress();
         Alert.alert(
             'Message Actions',
             message.text,
             [
+                {
+                    text: 'Add Reaction',
+                    onPress: () => {
+                        setSelectedMessageForReaction(message);
+                        setShowReactionPicker(true);
+                    },
+                },
                 {
                     text: 'Copy',
                     onPress: () => {
@@ -402,12 +486,47 @@ const App = () => {
                         if (Platform.OS === 'android') {
                             ToastAndroid.show('Message copied!', ToastAndroid.SHORT);
                         }
-                        Vibration.vibrate(50);
+                        SoundService.buttonPress();
                     },
                 },
                 { text: 'Cancel', style: 'cancel' },
             ]
         );
+    };
+
+    const handleReactionSelect = (emoji) => {
+        if (!selectedMessageForReaction || !selectedDevice) {
+            setShowReactionPicker(false);
+            return;
+        }
+
+        setConversations((prev) => {
+            const deviceConvo = prev[selectedDevice];
+            if (!deviceConvo) return prev;
+
+            const updatedMessages = deviceConvo.messages.map((msg) => {
+                if (msg.id === selectedMessageForReaction.id) {
+                    const reactions = msg.reactions || [];
+                    return {
+                        ...msg,
+                        reactions: [...reactions, emoji],
+                    };
+                }
+                return msg;
+            });
+
+            return {
+                ...prev,
+                [selectedDevice]: {
+                    ...deviceConvo,
+                    messages: updatedMessages,
+                },
+            };
+        });
+
+        SoundService.buttonPress();
+        setShowReactionPicker(false);
+        setSelectedMessageForReaction(null);
     };
 
     const getSignalStrength = (rssi) => {
@@ -491,15 +610,67 @@ const App = () => {
         return <ProfileSetup onComplete={handleProfileComplete} />;
     }
 
+    // Show settings screen
+    if (currentScreen === 'settings') {
+        return (
+            <SettingsScreen
+                userProfile={userProfile}
+                onBack={() => {
+                    setCurrentScreen('chat');
+                    SoundService.buttonPress();
+                }}
+                onProfileUpdate={setUserProfile}
+            />
+        );
+    }
+
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
 
+            {/* Achievement Notification */}
+            {achievementNotification && (
+                <AchievementNotification
+                    achievement={achievementNotification}
+                    onDismiss={() => setAchievementNotification(null)}
+                />
+            )}
+
+            {/* Reaction Picker */}
+            {showReactionPicker && (
+                <ReactionPicker
+                    onSelect={handleReactionSelect}
+                    onClose={() => {
+                        setShowReactionPicker(false);
+                        setSelectedMessageForReaction(null);
+                    }}
+                />
+            )}
+
             {/* Header */}
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>🔵 BuzzTag</Text>
-                <Text style={styles.headerSubtitle}>Break the ice. Talk to the question.</Text>
+                <View style={styles.headerLeft}>
+                    <Text style={styles.headerTitle}>🔵 BuzzTag</Text>
+                    <Text style={styles.headerSubtitle}>Break the ice. Talk to the question.</Text>
+                </View>
+                <TouchableOpacity
+                    style={styles.settingsButton}
+                    onPress={() => {
+                        setCurrentScreen('settings');
+                        SoundService.buttonPress();
+                    }}
+                >
+                    <Text style={styles.settingsIcon}>⚙️</Text>
+                </TouchableOpacity>
             </View>
+
+            {/* Connection Status Bar */}
+            <ConnectionStatusBar
+                bluetoothEnabled={bluetoothEnabled}
+                isScanning={isScanning}
+                devicesCount={devices.length}
+                selectedDevice={selectedDevice ? devices.find(d => d.id === selectedDevice) : null}
+            />
 
             {/* Nearby Devices Section */}
             <View style={styles.devicesSection}>
@@ -580,6 +751,7 @@ const App = () => {
                             message={message.text}
                             isBot={message.isBot}
                             timestamp={formatTimestamp(message.timestamp)}
+                            reactions={message.reactions || []}
                             animated={true}
                             delay={index * 100}
                             onLongPress={() => handleLongPressMessage(message)}
@@ -658,10 +830,16 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.background,
     },
     header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
         paddingHorizontal: SPACING.md,
         paddingVertical: SPACING.lg,
         borderBottomWidth: 1,
         borderBottomColor: COLORS.border,
+    },
+    headerLeft: {
+        flex: 1,
     },
     headerTitle: {
         ...TYPOGRAPHY.title,
@@ -669,6 +847,12 @@ const styles = StyleSheet.create({
     },
     headerSubtitle: {
         ...TYPOGRAPHY.caption,
+    },
+    settingsButton: {
+        padding: 8,
+    },
+    settingsIcon: {
+        fontSize: 24,
     },
     devicesSection: {
         paddingHorizontal: SPACING.md,

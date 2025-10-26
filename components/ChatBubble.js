@@ -7,7 +7,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, Animated, StyleSheet, TouchableOpacity } from 'react-native';
 import { COLORS } from '../styles';
 
-const ChatBubble = ({ message, isBot, animated = true, delay = 0, timestamp, onLongPress }) => {
+const ChatBubble = ({ message, isBot, animated = true, delay = 0, timestamp, onLongPress, reactions = [] }) => {
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(30)).current;
     const scaleAnim = useRef(new Animated.Value(0.8)).current;
@@ -69,6 +69,15 @@ const ChatBubble = ({ message, isBot, animated = true, delay = 0, timestamp, onL
                     {timestamp && (
                         <Text style={styles.timestamp}>{timestamp}</Text>
                     )}
+                    {reactions && reactions.length > 0 && (
+                        <View style={styles.reactionsContainer}>
+                            {reactions.map((reaction, index) => (
+                                <Text key={index} style={styles.reactionEmoji}>
+                                    {reaction}
+                                </Text>
+                            ))}
+                        </View>
+                    )}
                 </View>
             </TouchableOpacity>
             {!isBot && <Text style={styles.label}>You</Text>}
@@ -113,6 +122,15 @@ const styles = StyleSheet.create({
         fontSize: 11,
         marginTop: 4,
         alignSelf: 'flex-end',
+    },
+    reactionsContainer: {
+        flexDirection: 'row',
+        marginTop: 4,
+        flexWrap: 'wrap',
+    },
+    reactionEmoji: {
+        fontSize: 16,
+        marginRight: 4,
     },
     label: {
         color: COLORS.textSecondary,

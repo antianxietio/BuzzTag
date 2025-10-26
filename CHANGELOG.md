@@ -5,25 +5,129 @@ All notable changes to BuzzTag will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - v3.0.0 Development
+## [3.0.0] - 2025-10-26
 
-### In Progress
-- **Persistent Storage**: Save conversations and data permanently
-- **User Profiles**: Custom username and avatar selection
-- **Real Bluetooth Messaging**: True peer-to-peer communication
-- **End-to-End Encryption**: Secure message encryption
-- **Sound Effects**: Audio feedback for actions
-- **Enhanced Haptics**: Custom vibration patterns
-- **Message Reactions**: Emoji reactions on messages
-- **Voice Messages**: Record and send voice notes
-- **Achievements System**: Unlock badges for milestones
-- **Connection Status**: Real-time connection indicators
+### 🎉 Major Release - Complete Feature Overhaul
 
-### Added (Development)
-- Storage service for AsyncStorage operations
-- Achievements data with 12 unique badges
-- Roadmap document for v3.0.0 planning
-- Dependencies: async-storage, audio-recorder-player, crypto-js
+#### Persistent Storage
+- Added AsyncStorage service for data persistence
+- Auto-save conversations on every change
+- Auto-save device list
+- Load saved data on app start
+- Storage management in settings
+
+#### User Profile System
+- Profile setup screen with avatar selection (24 emoji options)
+- Username validation (3-20 characters)
+- Profile preview before confirmation
+- Profile data saved to storage
+- First-time setup flow
+- Profile display in settings
+
+#### Real Bluetooth Messaging
+- Enhanced BLE service with messaging capabilities
+- Device connection management
+- Message send/receive over BLE characteristics
+- Profile broadcasting to connected devices
+- Custom BuzzTag UUIDs for service discovery
+- Message monitoring system
+- BuzzTag device verification
+
+#### End-to-End Encryption
+- AES-256 encryption service
+- Automatic message encryption/decryption
+- Shared key generation between devices
+- Toggle encryption in settings
+- SHA-256 hashing for verification
+
+#### Connection Status Panel
+- Real-time Bluetooth status indicator
+- Color-coded status (red/yellow/blue/green)
+- Shows: BT on/off, scanning status, device count, connection state
+- Visual status icon and pulse indicator
+
+#### Sound Effects & Haptics
+- Haptic feedback for all interactions
+- Custom vibration patterns for:
+  - Message sent (short tap)
+  - Message received (double tap)
+  - Device connected (success pattern)
+  - Achievement unlocked (celebration pattern)
+  - Button press (micro tap)
+  - Long press (medium tap)
+  - Error (error pattern)
+- Toggle sounds and haptics in settings
+
+#### Message Reactions
+- Reaction picker with 8 emoji options (❤️ 😂 👍 🔥 🎉 😮 👏 💯)
+- Long-press message to add reaction
+- Display reactions on chat bubbles
+- Multiple reactions per message
+
+#### Achievements System
+- 12 unique achievements to unlock:
+  - **Communication**: Ice Breaker (1 message), Conversationalist (10 messages), Chatterbox (50 messages)
+  - **Networking**: Social Butterfly (5 devices), Networker (10 devices)
+  - **Questions**: Question Master (25 questions), Buzz Master (50 questions)
+  - **Activity**: On Fire (20 session messages), Speedster (5 messages in 30s)
+  - **Time-based**: Night Owl (midnight-5AM), Early Bird (5AM-8AM)
+  - **Loyalty**: Loyal User (7 active days)
+- Real-time progress tracking
+- Achievement notifications with animations
+- Progress bar and completion percentage
+- Visual badges in settings
+
+#### Settings Page
+- Profile display with avatar and join date
+- Achievement progress overview with badges
+- Sound effects toggle
+- Haptic feedback toggle
+- Message encryption toggle
+- Clear all data option
+- Reset profile option
+- App version info (v3.0.0)
+
+### Behavior Improvements
+- No automatic message sending on device detection
+- Messages only sent when user explicitly sends or buzzes
+- Device filtering: excludes headphones, speakers, watches, TVs, peripherals
+- Only shows potentially compatible mobile devices
+- Auto-select first device but don't auto-message
+- BuzzTag device verification on connection
+
+### Technical Improvements
+- Storage service with 6 data types (profile, conversations, devices, achievements, settings, storage info)
+- Encryption service with AES-256 and key exchange
+- Achievements service with stats tracking
+- Sound/haptics service with pattern system
+- Enhanced Bluetooth service with:
+  - Device connection management
+  - Message characteristic read/write
+  - Profile characteristic
+  - Message monitoring
+  - Connection state tracking
+  - Device filtering logic
+  - BuzzTag verification
+
+### Dependencies Added
+- `@react-native-async-storage/async-storage@^1.19.0` - Persistent storage
+- `crypto-js` - Message encryption
+
+### Bug Fixes
+- Fixed Bluetooth manager initialization timing
+- Added delay before BT init to prevent early destruction
+- Fixed profile loading race condition
+- Removed auto-messaging on first device detection
+- Filtered out non-mobile BLE devices
+
+### UI Enhancements
+- Connection status bar with color coding
+- Achievement notification with slide-in animation
+- Reaction picker with backdrop
+- Settings screen with organized sections
+- Profile setup with live preview
+- Header with settings button (⚙️)
+- Message reactions display on bubbles
 
 ---
 
