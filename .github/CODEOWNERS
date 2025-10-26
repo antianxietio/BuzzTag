@@ -1,0 +1,24 @@
+# Code Owners
+# This file defines who is responsible for reviewing changes to specific parts of the codebase
+# When a PR is opened that modifies these files, the specified owners will automatically be requested for review
+
+# Global owner - all files
+* @antianxietio
+
+# Core application files
+/App.js @antianxietio
+/services/** @antianxietio
+/components/** @antianxietio
+
+# Android native code
+/android/** @antianxietio
+
+# Configuration files
+/package.json @antianxietio
+/android/app/build.gradle @antianxietio
+/android/build.gradle @antianxietio
+
+# Documentation
+/README.md @antianxietio
+/CONTRIBUTING.md @antianxietio
+/CHANGELOG.md @antianxietio
