@@ -5,6 +5,52 @@ All notable changes to BuzzTag will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2025-10-26
+
+### Added
+- **Message Timestamps**: Display time for each message (relative and absolute)
+- **Signal Strength Indicators**: Show Bluetooth RSSI strength (Excellent/Good/Fair/Weak) for each device
+- **Long-Press to Copy**: Long-press any message to copy its text to clipboard
+- **Device Removal**: Long-press device chips to remove them from the list
+- **Message Count Display**: Show total message count in chat header
+- **Device Selection Hints**: Helper text showing tap/long-press interactions
+- **Toast Notifications**: Android toast feedback when copying messages
+- **Improved Device Cards**: Enhanced device chips with signal strength and message badges
+- **Contribution Guidelines**: Added comprehensive CONTRIBUTING.md
+- **Pull Request Template**: Standardized PR template for contributors
+- **CODEOWNERS File**: Automatic code review assignment
+- **Branch Protection Guide**: Complete guide for repository protection setup
+
+### Changed
+- **Device Filtering**: Improved Bluetooth device filtering to exclude unnamed/system devices
+- **Device UI Layout**: Redesigned device chips with vertical layout showing signal strength
+- **Vibration Feedback**: Enhanced haptic feedback on all user interactions
+- **Chat Header**: Now shows device name and message count
+- **Message Bubbles**: Added timestamps at bottom of each message
+
+### Fixed
+- "Buzz Again" functionality now sends questions FROM user TO device (not from BuzzTag)
+- Button text changes from "Buzz Newly" to "Buzz Again" after first message
+- Buzz button now always visible when device is selected (not just when messages exist)
+- Device filtering excludes generic "Device_X" names and MAC addresses
+
+### Technical Details
+- Added `Clipboard` and `ToastAndroid` imports
+- Added `handleLongPressMessage()` for message copy functionality
+- Added `handleRemoveDevice()` for device removal
+- Added `getSignalStrength()` for RSSI interpretation
+- Added `formatTimestamp()` for relative time display
+- Updated `ChatBubble` component to support long-press and timestamps
+- Enhanced device rendering with signal indicators
+
+### Documentation
+- Created `CONTRIBUTING.md` - 300+ lines of contribution guidelines
+- Created `.github/PULL_REQUEST_TEMPLATE.md` - Standardized PR format
+- Created `.github/CODEOWNERS` - Auto-assign reviews to @antianxietio
+- Created `BRANCH_PROTECTION_GUIDE.md` - Step-by-step repository protection setup
+
+---
+
 ## [2.1.0] - 2025-10-26
 
 ### Added
