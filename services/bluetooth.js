@@ -113,26 +113,52 @@ class BluetoothService {
                         return;
                     }
 
-                    // Filter out common non-mobile devices by name patterns
+                    // More comprehensive filtering to detect ONLY mobile devices
+                    const lowerName = deviceName.toLowerCase();
+
+                    // Check for non-mobile device keywords first
                     const nonMobileKeywords = [
-                        'headphone', 'headset', 'earphone', 'earbud', 'airpod',
-                        'speaker', 'soundbar', 'audio',
-                        'watch', 'band', 'fit',
-                        'tv', 'television',
-                        'mouse', 'keyboard',
-                        'car', 'vehicle',
-                        'beacon', 'tag',
-                        'printer',
+                        'headphone', 'headset', 'earphone', 'earbud', 'airpod', 'buds',
+                        'speaker', 'soundbar', 'audio', 'sound',
+                        'watch', 'band', 'fit', 'wear',
+                        'tv', 'television', 'display', 'monitor',
+                        'mouse', 'keyboard', 'trackpad',
+                        'car', 'vehicle', 'auto',
+                        'beacon', 'tag', 'tracker', 'tile',
+                        'printer', 'scanner',
                         'le-', 'mi band', 'mi smart band',
+                        'controller', 'gamepad', 'remote',
+                        'sensor', 'thermostat', 'lock', 'bulb', 'light',
+                        'hub', 'bridge', 'gateway',
+                        'camera', 'doorbell',
                     ];
 
-                    const lowerName = deviceName.toLowerCase();
                     const isNonMobile = nonMobileKeywords.some(keyword =>
                         lowerName.includes(keyword)
                     );
 
                     if (isNonMobile) {
                         console.log(`🚫 Filtered out non-mobile device: ${deviceName}`);
+                        return;
+                    }
+
+                    // Additional check: look for mobile-like indicators
+                    // Mobile devices often have brand names or phone model patterns
+                    const mobileIndicators = [
+                        'phone', 'iphone', 'android', 'samsung', 'galaxy',
+                        'pixel', 'xiaomi', 'redmi', 'oneplus', 'oppo', 'vivo',
+                        'huawei', 'honor', 'realme', 'nokia', 'motorola', 'lg',
+                        'sony xperia', 'asus', 'htc', 'lenovo',
+                    ];
+
+                    const hasMobileIndicator = mobileIndicators.some(indicator =>
+                        lowerName.includes(indicator)
+                    );
+
+                    // If device name is very generic and doesn't have mobile indicators, filter it out
+                    const genericPattern = /^(bt|ble|device|unknown|unnamed|peripheral)/i;
+                    if (genericPattern.test(deviceName) && !hasMobileIndicator) {
+                        console.log(`🚫 Filtered out generic device: ${deviceName}`);
                         return;
                     }
 
